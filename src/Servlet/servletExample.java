@@ -1,24 +1,30 @@
-import javax.annotation.Resource;
-import javax.naming.Context;
-import javax.naming.InitialContext;
+package Servlet;
+
+import DAO.*;
+import Entity.Item;
+
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.Statement;
+
 
 
 @WebServlet("/test")
 public class servletExample extends HttpServlet
 {
-    @Resource(name = "jdbc/db")
-    private DataSource ds;
+
+    private DAO dao;
+
+    @Override
+    public void init() throws ServletException
+    {
+        dao = new DAOImpl();
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
@@ -26,17 +32,16 @@ public class servletExample extends HttpServlet
         PrintWriter pw = resp.getWriter();
         try
         {
-            Context ctx = new InitialContext();
-            Connection c = ds.getConnection();
-            Statement s = c.createStatement();
-            pw.println("execute = " + s.execute("INSERT INTO ss(test) VALUES ('fix');"));
-            s.close();
-            c.close();
+            pw.println("dao = " + dao);
+            pw.println("now dao = " + dao);
+            dao.save(new Item("test", "hope", 777));
+            dao.close();
+            pw.println("dao closed");
         }
         catch(Exception ex)
         {
             pw.println("FUCK, EXCEPTION");
-            pw.println(ex.toString());
+            ex.printStackTrace(pw);
             pw.flush();
         }
         finally
