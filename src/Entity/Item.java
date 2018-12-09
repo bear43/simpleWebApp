@@ -1,12 +1,14 @@
 package Entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import DAO.*;
+import Util.Saveable;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.List;
 
 @Entity
-public class Item
+public class Item implements Saveable, Serializable, EntityClass
 {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -14,6 +16,8 @@ public class Item
     private String name;
     private String description;
     private double cost;
+    @OneToMany(mappedBy = "item")
+    private List<Dishes> dishes;
 
     public Item()
     {
@@ -40,7 +44,7 @@ public class Item
         return id;
     }
 
-    protected void setId(int id)
+    public void setId(int id)
     {
         this.id = id;
     }
@@ -75,6 +79,16 @@ public class Item
         this.cost = cost;
     }
 
+    public List<Dishes> getDishes()
+    {
+        return dishes;
+    }
+
+    public void setDishes(List<Dishes> dishes)
+    {
+        this.dishes = dishes;
+    }
+
     @Override
     public boolean equals(Object obj)
     {
@@ -89,5 +103,23 @@ public class Item
     public int hashCode()
     {
         return id ^ name.hashCode() ^ description.hashCode() ^ (int)cost;
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format("Name: %s\nDescription:\n%s\nCost: %f", name, description, cost);
+    }
+
+    @Override
+    public void save()
+    {
+        DAO dao = DAOFactory.getDAOFactory().getItemsDAO();
+        EntityClass item = dao.findByFields(this);
+        if(item != null)
+            this.id = item.getId();
+        else
+            dao.save(this);
+        dao.close();
     }
 }

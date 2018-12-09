@@ -3,10 +3,10 @@ package DAO;
 import Entity.Item;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface ItemsDAO extends DAO
 {
-    Collection<Item> findByName(String name);
-    Collection<Item> findByCost(double cost);
-    Item findByID(int id);
+    List<Item> findByName(String name);
+    List<Item> findByCost(double cost);
 }

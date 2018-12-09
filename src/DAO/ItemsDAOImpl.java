@@ -1,31 +1,59 @@
 package DAO;
 
+import Entity.EntityClass;
 import Entity.Item;
 
-import java.util.Collection;
+import javax.persistence.NoResultException;
+import java.util.List;
 
 public class ItemsDAOImpl extends DAOImpl implements ItemsDAO
 {
-    @Override
-    public Collection<Item> findByName(String name)
+    public ItemsDAOImpl()
     {
-        return null;
+        this.className = Item.class.getCanonicalName();
     }
 
     @Override
-    public Collection<Item> findByCost(double cost)
+    @SuppressWarnings("uncheked")
+    public List<Item> findByName(String name)
     {
+        return (List<Item>)findByField("name", name);
+    }
+    @SuppressWarnings("uncheked")
+    @Override
+    public List<Item> findByCost(double cost)
+    {
+        return (List<Item>)findByField("cost", cost);
+    }
+
+    public Item findByFields(EntityClass item)
+    {
+        if(item instanceof Item)
+        {
+            checkOpen();
+            Object ret;
+            entityManager.getTransaction().begin();
+            try
+            {
+                ret = entityManager.createQuery(String.format("from %s where name='%s' and description='%s' and cost=%f",
+                        className, ((Item) item).getName(), ((Item) item).getDescription(), ((Item) item).getCost()).replace(',', '.')).getSingleResult();
+            }
+            catch (NoResultException ex)
+            {
+                return null;
+            }
+            finally
+            {
+                entityManager.close();
+            }
+            return (Item)ret;
+        }
         return null;
     }
 
     @Override
     public Item findByID(int id)
     {
-        checkOpen();
-        Object ret;
-        entityManager.getTransaction().begin();
-        ret = entityManager.createQuery(String.format("from Item where id=%d", id)).getSingleResult();
-        entityManager.close();
-        return (Item)ret;
+        return entityManager.find(Item.class, id);
     }
 }

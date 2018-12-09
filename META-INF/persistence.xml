@@ -5,6 +5,17 @@
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.show_sql" value="false"/>
         </properties>
+    </persistence-unit>
+    <persistence-unit name="sampleC">
+                <properties>
+                    <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect"/>
+                    <property name="hibernate.hbm2ddl.auto" value="update"/>
+                    <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+                    <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/db?useTimezone=true&amp;serverTimezone=UTC"/>
+                    <property name="hibernate.connection.username" value="root"/>
+                    <property name="hibernate.connection.password" value=""/>
+                </properties>
     </persistence-unit>
 </persistence>

@@ -1,14 +1,21 @@
 package Entity;
 
+import DAO.*;
+import Util.Saveable;
+
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
+import static Util.SaveManager.saveList;
 
 
 @Entity
 @Table(name="_Order")
-public class Order
+public class Order implements Saveable, Serializable, EntityClass
 {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -16,7 +23,7 @@ public class Order
     private LocalDate date;
     @ManyToOne
     private Officiant officiant;
-    @OneToMany(mappedBy = "item")
+    @ManyToMany(mappedBy = "orders")
     private List<Dishes> dishes;
 
     private void checkItem(Item item) throws Exception
@@ -31,19 +38,35 @@ public class Order
 
     }
 
-    public Order(LocalDate date, Officiant officiant, List<Dishes> dishes)
+    protected void assignDishes() throws Exception
+    {
+        if(dishes == null) throw new Exception("[Order.class] Cannot assign null pointer dishes");
+        for(Dishes dish : dishes)
+            dish.getOrders().add(this);
+    }
+
+    public Order(LocalDate date, Officiant officiant, List<Dishes> dishes) throws Exception
     {
         this.date = date;
         this.officiant = officiant;
         this.dishes = dishes;
+        assignDishes();
     }
 
-    protected Order(int id, LocalDate date, Officiant officiant, List<Dishes> dishes)
+    public Order(LocalDate date, Officiant officiant) throws Exception
+    {
+        this.date = date;
+        this.officiant = officiant;
+        this.dishes = new ArrayList<Dishes>();
+    }
+
+    protected Order(int id, LocalDate date, Officiant officiant, List<Dishes> dishes) throws Exception
     {
         this.id = id;
         this.date = date;
         this.officiant = officiant;
         this.dishes = dishes;
+        assignDishes();
     }
 
     public int getId()
@@ -51,7 +74,7 @@ public class Order
         return id;
     }
 
-    protected void setId(int id)
+    public void setId(int id)
     {
         this.id = id;
     }
@@ -103,7 +126,7 @@ public class Order
                 return;
             }
         }
-        dishes.add(new Dishes(item, quantity));
+        dishes.add(new Dishes(this, item, quantity));
     }
 
     public void remove(Item item) throws Exception
@@ -136,5 +159,39 @@ public class Order
                 return;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return obj instanceof Order &&
+                ((Order) obj).id == id &&
+                ((Order) obj).date.equals(date) &&
+                ((Order) obj).dishes.equals(dishes) &&
+                ((Order) obj).officiant.equals(officiant);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return id ^ date.hashCode() ^ dishes.hashCode() ^ officiant.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format("Date: %s\nOfficiant: %s\nDishes:\n%s", date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace('-', '.'), officiant, dishes);
+    }
+
+    @Override
+    public void save() throws Exception
+    {
+        officiant.save();
+        for(Dishes dishes : this.dishes)
+            dishes.getItem().save();
+        DAO dao = DAOFactory.getDAOFactory().getOrdersDAO();
+        dao.save(this);
+        dao.close();
+        saveList(dishes);
     }
 }

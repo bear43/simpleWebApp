@@ -1,10 +1,14 @@
 package Entity;
 
+import DAO.*;
+import Util.Saveable;
+
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
-public class Officiant
+public class Officiant implements Saveable, Serializable, EntityClass
 {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -13,6 +17,12 @@ public class Officiant
     private String secondname;
     @OneToMany(mappedBy = "officiant")
     private Set<Order> orders;
+
+    public Officiant(String firstname, String secondname)
+    {
+        this.firstname = firstname;
+        this.secondname = secondname;
+    }
 
     public Officiant()
     {
@@ -69,7 +79,7 @@ public class Officiant
         return id;
     }
 
-    protected void setId(int id)
+    public void setId(int id)
     {
         this.id = id;
     }
@@ -92,5 +102,39 @@ public class Officiant
     public Order remove(Order order)
     {
         return orders.remove(order) ? order : null;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return obj instanceof Officiant &&
+                ((Officiant) obj).id == id &&
+                ((Officiant) obj).firstname.equals(firstname) &&
+                ((Officiant) obj).secondname.equals(secondname) &&
+                ((Officiant) obj).orders.equals(orders);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return id ^ firstname.hashCode() ^ secondname.hashCode() ^ orders.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format("Firstname: %s\nSecondname: %s", firstname, secondname);
+    }
+
+    @Override
+    public void save()
+    {
+        DAO dao = DAOFactory.getDAOFactory().getOfficiantsDAO();
+        EntityClass officiant = dao.findByFields(this);
+        if(officiant != null)
+            this.id = officiant.getId();
+        else
+            dao.save(this);
+        dao.close();
     }
 }
