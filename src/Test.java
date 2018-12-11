@@ -1,59 +1,55 @@
+import DAO.DAOFactory;
+import DAO.ItemsDAO;
 import Entity.Item;
 import Entity.Officiant;
 import Entity.Order;
+import Servlet.servletExample;
 
 import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Test
 {
     public static void main(String[] args)
     {
-        /*PrintWriter pw = new PrintWriter(System.out);
+        /*ItemsDAO dao = DAOFactory.getDAOFactory().getItemsDAO();
+        List<Item> items = new ArrayList<>();
+        Map<String, String[]> map = new HashMap<>();
+        map.put("name", new String[] {"Salad", "Putinka"});
+        Item it;
         try
         {
-            Random r = new Random();
-            Item[] items = new Item[]{
-                    new Item("Hookah-buba", "Shisha with bubble gum taste", 777),
-                    new Item("Borsch", "Soup with sour cream and Russian(Ukranian(Slavic)) soul", 50),
-                    new Item("Salad", "Cucumber + tomato", 25),
-                    new Item("Putinka", "The powerful drink of the mother Russia", 300)
-            };
-            Officiant[] officiants = new Officiant[]{
-                    new Officiant("Odmen", "S4"),
-                    new Officiant("Io", "Asakura"),
-                    new Officiant("Naruto", "Udzumaki"),
-                    new Officiant("Harry", "Povar"),
-                    new Officiant("Sergey", "Brin")
-            };
-            List<Order> orders = new ArrayList<>();
-            orders.add(new Order(LocalDate.now().plusDays(r.nextInt(366)),
-                    officiants[r.nextInt(officiants.length)]));
-            orders.add(new Order(LocalDate.now().plusDays(r.nextInt(366)),
-                    officiants[r.nextInt(officiants.length)]));
-            orders.forEach((x) ->
+            if (map.containsKey("id"))
             {
-                try
+                String[] ids = map.get("id");
+                for(String id : ids)
                 {
-                    x.addItems(items[r.nextInt(items.length)], Math.abs(r.nextInt(20)));
-                    x.save();
-                } catch (Exception ex)
-                {
-                    ex.printStackTrace();
+                    it = (Item)dao.findByID(Integer.parseInt(id));
+                    if(it != null) items.add(it);
                 }
-            });
-            pw.println("dao closed");
-        } catch (Exception ex)
+            }
+            else
+            {
+                String[] names = map.get("name");
+                String[] descriptions = map.get("description");
+                String[] costs = map.get("cost");
+                if(names == null) names = new String[]{null};
+                if(descriptions == null) descriptions = new String[]{null};
+                if(costs == null) costs = new String[]{null};
+                for(String n : names)
+                    for(String d : descriptions)
+                        for(String c : costs)
+                            items.addAll(dao.joinResults(n, d, c == null ? 0 : Double.parseDouble(c)));
+            }
+            if(items.isEmpty())
+                items.addAll(dao.findAll());
+            for(Item i : items)
+                if(i != null) System.out.println(i.toString());
+        }
+        catch (Exception ex)
         {
-            pw.println("FUCK, EXCEPTION");
-            ex.printStackTrace(pw);
-            pw.flush();
-        } finally
-        {
-            pw.close();
+            ex.printStackTrace();
         }*/
     }
 }

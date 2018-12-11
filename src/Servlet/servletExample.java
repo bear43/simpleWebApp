@@ -15,75 +15,64 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static Util.SaveManager.saveArray;
 import static Util.SaveManager.saveList;
 
 
-@WebServlet("/test")
+@WebServlet("/getitems")
 public class servletExample extends HttpServlet
 {
 
-    public static Object locker = new Object();
-
     @Override
-    public void destroy()
-    {
-        super.destroy();
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        synchronized (this)
+        Map<String, String[]> map = req.getParameterMap();
+        PrintWriter pw = resp.getWriter();
+        DAOFactory daoFactory = DAOFactory.getDAOFactory();
+        List<Item> items = new ArrayList<>();
+        ItemsDAO dao = daoFactory.getItemsDAO();
+        Item it;
+        try
         {
-            PrintWriter pw = resp.getWriter();
-            try
+            if (map.containsKey("id"))
             {
-                Random r = new Random();
-                Item[] items = new Item[]{
-                        new Item("Hookah-buba", "Shisha with bubble gum taste", 777),
-                        new Item("Borsch", "Soup with sour cream and Russian(Ukranian(Slavic)) soul", 50),
-                        new Item("Salad", "Cucumber + tomato", 25),
-                        new Item("Putinka", "The powerful drink of the mother Russia", 300)
-                };
-                Officiant[] officiants = new Officiant[]{
-                        new Officiant("Odmen", "S4"),
-                        new Officiant("Io", "Asakura"),
-                        new Officiant("Naruto", "Udzumaki"),
-                        new Officiant("Harry", "Povar"),
-                        new Officiant("Sergey", "Brin")
-                };
-                List<Order> orders = new ArrayList<>();
-                orders.add(new Order(LocalDate.now().plusDays(r.nextInt(366)),
-                        officiants[r.nextInt(officiants.length)]));
-                orders.add(new Order(LocalDate.now().plusDays(r.nextInt(366)),
-                        officiants[r.nextInt(officiants.length)]));
-                orders.forEach((x) ->
+                String[] ids = map.get("id");
+                for(String id : ids)
                 {
-                    try
-                    {
-                        x.addItems(items[r.nextInt(items.length)], Math.abs(r.nextInt(20)));
-                        x.save();
-                    } catch (Exception ex)
-                    {
-                        ex.printStackTrace();
-                    }
-                });
-                pw.println("dao closed");
-            } catch (Exception ex)
-            {
-                pw.println("FUCK, EXCEPTION");
-                ex.printStackTrace(pw);
-                pw.flush();
-            } finally
-            {
-                pw.close();
+                    it = (Item)dao.findByID(Integer.parseInt(id));
+                    if(it != null) items.add(it);
+                }
             }
+            else
+            {
+                String[] names = map.get("name");
+                String[] descriptions = map.get("description");
+                String[] costs = map.get("cost");
+                if(names == null) names = new String[]{null};
+                    else names = names[0].split(" ");
+                if(descriptions == null) descriptions = new String[]{null};
+                    else descriptions = descriptions[0].split(" ");
+                if(costs == null) costs = new String[]{null};
+                    else costs = costs[0].split(" ");
+                for(String n : names)
+                    for(String d : descriptions)
+                        for(String c : costs)
+                            items.addAll(dao.joinResults(n, d, c == null ? 0 : Double.parseDouble(c)));
+            }
+            if(items.isEmpty())
+              items.addAll(dao.findAll());
+            items.forEach(pw::println);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace(pw);
+        }
+        finally
+        {
+            pw.close();
         }
     }
 }

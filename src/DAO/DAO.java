@@ -22,4 +22,5 @@ public interface DAO
     List findByField(String field, double value);
     List findByField(String field, LocalDate value);
     EntityClass findByFields(EntityClass obj);
+    List findAll();
 }

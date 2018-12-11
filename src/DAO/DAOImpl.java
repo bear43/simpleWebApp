@@ -15,7 +15,7 @@ public class DAOImpl implements DAO
 {
     protected String className;
 
-    protected static EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("sample");
+    protected static EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("sampleC");
 
     protected EntityManager entityManager = entityManagerFactory.createEntityManager();
 
@@ -29,7 +29,7 @@ public class DAOImpl implements DAO
     protected void checkOpen()
     {
         if(entityManagerFactory == null || !entityManagerFactory.isOpen())
-            entityManagerFactory = Persistence.createEntityManagerFactory("sample");
+            entityManagerFactory = Persistence.createEntityManagerFactory("sampleC");
         if(entityManager == null || !entityManager.isOpen())
             entityManager = entityManagerFactory.createEntityManager();
     }
@@ -169,5 +169,26 @@ public class DAOImpl implements DAO
     public void setClassName(String className)
     {
         this.className = className;
+    }
+
+    @Override
+    public List findAll()
+    {
+        checkOpen();
+        List ret;
+        entityManager.getTransaction().begin();
+        try
+        {
+            ret = entityManager.createQuery(String.format("from %s", className)).getResultList();
+        }
+        catch (NoResultException ex)
+        {
+            return null;
+        }
+        finally
+        {
+            entityManager.close();
+        }
+        return ret;
     }
 }
